@@ -8,7 +8,7 @@ import seaborn as sns
 # 1.) Who were the passengers on the Titanic? (Ages,Gender,Class,..etc)
 # 2.) What deck were the passengers on and how does that relate to their class?
 # 3.) Where did the passengers come from?
-# 4.) Who was alone and who was with family?
+# 4.) Who was Alone and who was with family?
 #
 # Then we'll dig deeper, with a broader question:
 #
@@ -86,3 +86,43 @@ sns.factorplot('Cabin',data=cabin_df,kind='count',palette='summer')
 # 3.) Where did the passengers come from?
 #To understand from where the passengers came from lets plot the embarked column
 sns.factorplot('Embarked',data=titanic_df,kind='count',hue='Pclass',order=['C','Q','S'])
+# The next question is
+# 4.) Who was Alone and who was with family?
+#Lets check for the 2 columns that describe Sibsp and Parch to analyse this
+pd.options.mode.chained_assignment = None #https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
+titanic_df['Alone'] = titanic_df['SibSp']+titanic_df['Parch']
+titanic_df['Alone'].loc[titanic_df['Alone']>0] = 'With Family'
+titanic_df['Alone'].loc[titanic_df['Alone']==0] = 'Alone'
+sns.factorplot('Alone',data=titanic_df,palette='Blues',kind='count',order=['Alone','With Family'])
+
+titanic_df['Survivor'] = titanic_df.Survived.map({0:'no',1:'yes'})
+sns.factorplot('Survivor',data=titanic_df,kind='count')
+
+#Let us now analyse what influenced the survivors like class, family and more
+sns.factorplot('Pclass',data=titanic_df,hue='Survivor',kind='count')
+sns.factorplot('Pclass','Survived',data=titanic_df)
+sns.factorplot('Pclass','Survived',data=titanic_df,hue='person')
+#from the graph we can say that 3rd class most of them did not survive
+
+#Now let us plot the people with family or without
+sns.factorplot('Alone',data=titanic_df,hue='Survivor',kind='count')
+#clearly people with Family is kind of 50-50 but most of the alone people could not survive
+sns.lmplot('Age','Survived',data=titanic_df)
+# sns.lmplot('Age','Survived',data=titanic_df,hue='Pclass',palette='winter')
+generations = [10,20,40,60,80]
+sns.lmplot('Age','Survived',data=titanic_df,hue='Pclass',palette='winter',x_bins=generations)
+sns.lmplot('Age','Survived',hue='Sex',data=titanic_df,palette='winter',x_bins=generations)
+
+#Now let us see hoe the deck matters for the survival of the titanic crash
+titanic_df_cabin_survivor = titanic_df[titanic_df['Survived']==1]
+decks = titanic_df_cabin_survivor['Cabin'].dropna()
+level = []
+for l in decks:
+    level.append(l[0])
+cabin_df_survived = DataFrame(levels)
+cabin_df_survived.columns = ['Cabin']
+cabin_df_survived = cabin_df_survived[cabin_df_survived != 'T']
+sns.factorplot('Cabin',data=cabin_df_survived,kind = 'count',palette='summer',order=['A','B','C','D','E','F','G'])
+plt.ylabel("Survivers Count")
+
+#Did you observe that people who ever have survied there cabin numbers are mentioned and not the others :)
